@@ -62,7 +62,8 @@ class GameController(object):
         self.pacman.qlearningController = self.QlearningController
         self.pacman.useQlearning = True
         self.pacman.game = self
-        
+        self.pacman.qlearningController.setTrainingMode(training=True)
+
         self.pellets = PelletGroup(self.mazedata.obj.name+".txt")
         self.ghosts = GhostGroup(self.nodes.getStartTempNode(), self.pacman)
 

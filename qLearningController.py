@@ -27,10 +27,18 @@ class QlearningController:
         # Exploration rate
         self.rho = 0.1
 
+        self.learnCounter = 0
+
+    def setTrainingMode(self, training):
+        if training:
+            self.rho = 0.5
+        else:
+            self.rho = 0.1
+
 
     def learn(self, game):
         # To prevent error on the first update, we wait until we have a previous state and action to learn from
-        if self.previousState is None and self.previousAction is None:
+        if self.previousState is None or self.previousAction is None:
             self.previousScore = game.score
             self.previousLives = game.lives
             return
@@ -50,6 +58,12 @@ class QlearningController:
 
         self.previousScore = game.score
         self.previousLives = game.lives
+
+        self.learnCounter += 1
+
+        # occasionally print out some information about the learning progress
+        if self.learnCounter % 300 == 0:
+            print("Score:", game.score, "Lives:", game.lives, "Q-table size:", len(self.qTable.qTable))
 
     def getAction(self, state, actions):
         if len(actions) == 0:
@@ -111,7 +125,7 @@ class QlearningController:
             nearestGhostFreight = nearestGhost.mode.current == FREIGHT
 
         state = State(pacman.position, nearestGhostDirection, nearestGhostDistance, nearestpelletDirection, nearestGhostFreight)
-
+    
         return state
     
     def getNearestGhost(self, pacman, ghosts):
