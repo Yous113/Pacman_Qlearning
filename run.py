@@ -209,10 +209,22 @@ class GameController(object):
                         self.pacman.die()               
                         self.ghosts.hide()
                         if self.lives <= 0:
-                            self.textgroup.showText(GAMEOVERTXT)
-                            self.pause.setPause(pauseTime=3, func=self.restartGame)
+                            if self.trainingMode:
+                                self.restartGame()
+                                self.pause.paused = False
+                                self.textgroup.hideText()
+                                self.showEntities()
+                            else:
+                                self.textgroup.showText(GAMEOVERTXT)
+                                self.pause.setPause(pauseTime=3, func=self.restartGame)
                         else:
-                            self.pause.setPause(pauseTime=3, func=self.resetLevel)
+                            if self.trainingMode:
+                                self.resetLevel()
+                                self.pause.paused = False
+                                self.textgroup.hideText()
+                                self.showEntities()
+                            else:
+                                self.pause.setPause(pauseTime=3, func=self.resetLevel)
     
     def checkFruitEvents(self):
         if self.pellets.numEaten == 50 or self.pellets.numEaten == 140:

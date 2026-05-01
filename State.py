@@ -1,6 +1,14 @@
 from vector import Vector2
 from constants import *
 
+
+"""
+    State representation for the Q-learning algorithm. 
+    The state is represented as a string, which is used as a key in the Q-table. 
+    The state includes the tile position of the player, the direction and distance to the nearest ghost, 
+    the direction to the nearest pellet and whether the nearest ghost is in freight mode. 
+    This representation allows the Q-learning algorithm to learn from the environment and make informed decisions based on the current state of the game.
+"""
 class State:
     def __init__(
             self, 
