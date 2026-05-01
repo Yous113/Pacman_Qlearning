@@ -100,14 +100,38 @@ class QlearningController:
 
     def getState(self, game):
         pacman = game.pacman
-        nearestGhostDirection = self.getNearestGhostDirection(pacman, pacman.game.ghosts)
-        nearestGhostDistance = self.nearestGhostDistance(pacman, pacman.game.ghosts)
+        nearestGhost = self.getNearestGhost(pacman, game.ghosts)
+
+        nearestGhostDirection = self.getNearestGhostDirection(pacman, nearestGhost)
+        nearestGhostDistance = self.nearestGhostDistance(pacman, nearestGhost)
         nearestpelletDirection = self.getNearestPelletDirection(pacman, game.pellets.pelletList)
-        state = State(pacman.position, nearestGhostDirection, nearestGhostDistance, nearestpelletDirection)
+
+        nearestGhostFreight = False
+        if nearestGhost is not None:
+            nearestGhostFreight = nearestGhost.mode.current == FREIGHT
+
+        state = State(pacman.position, nearestGhostDirection, nearestGhostDistance, nearestpelletDirection, nearestGhostFreight)
 
         print(state)
 
         return state
+    
+    def getNearestGhost(self, pacman, ghosts):
+        nearestGhost = None
+        nearestDistance = None
+
+        for ghost in ghosts:
+            if not ghost.visible:
+                continue
+
+            difference = ghost.position - pacman.position
+            distance = difference.magnitudeSquared()
+
+            if nearestDistance is None or distance < nearestDistance:
+                nearestGhost = ghost
+                nearestDistance = distance
+        
+        return nearestGhost
     
     def getNearestPelletDirection(self, pacman, pellets):
         nearestPellet = None
@@ -139,53 +163,30 @@ class QlearningController:
                 return UP
             
     # simple heuristic to get the distance of the nearest ghost, used as part of the state
-    def nearestGhostDistance(self, pacman, ghosts):
-        nearestDistance = None
-
-        for ghost in ghosts:
-            if not ghost.visible:
-                continue
-
-            difference = ghost.position - pacman.position
-            distance = difference.magnitudeSquared()
-
-            if nearestDistance is None or distance < nearestDistance:
-                nearestDistance = distance
-
-        if nearestDistance is None:
+    def nearestGhostDistance(self, pacman, ghost):
+        if ghost is None:
             return "none"
+        
+        difference = ghost.position - pacman.position
+        distance = difference.magnitudeSquared()
 
         closeLimit = (TILEWIDTH * 5) ** 2
         mediumLimit = (TILEWIDTH * 10) ** 2
 
-        if nearestDistance <= closeLimit:
+        if distance <= closeLimit:
             return "close"
-        elif nearestDistance <= mediumLimit:
+        elif distance <= mediumLimit:
             return "medium"
         else:
             return "far"
 
     # simple heuristic to get the direction of the nearest ghost, used as part of the state
-    def getNearestGhostDirection(self, pacman, ghosts):
-        nearestGhost = None
-        nearestDistance = None
-
-        for ghost in ghosts:
-            if not ghost.visible:
-                continue    
-
-            difference = ghost.position - pacman.position
-            distance = difference.magnitudeSquared()
-
-            if nearestDistance is None or distance < nearestDistance:
-                nearestGhost = ghost
-                nearestDistance = distance
-        
+    def getNearestGhostDirection(self, pacman, ghost):
         # None = no ghosts
-        if nearestGhost is None:
+        if ghost is None:
             return None
         
-        difference = nearestGhost.position - pacman.position
+        difference = ghost.position - pacman.position
 
         if abs(difference.x) > abs(difference.y):
             if difference.x > 0:
@@ -204,11 +205,16 @@ class QlearningController:
     def calculateReward(self, game):
         
         # If score is increased, give a positive reward
+        # pellet + 10, power pellet +50, fruit +100, ghost eaten +200
         reward = game.score - self.previousScore
 
         # death is bad, give a large negative reward
         if game.lives < self.previousLives or not game.pacman.alive:
             reward -= 500
+
+        # penalty for reversing direction, to encourage smoother movement
+        if self.previousAction == game.pacman.direction * -1:
+            reward -= 3
 
         # nothing useful happened, give a small negative reward to encourage learning
         if reward == 0:
