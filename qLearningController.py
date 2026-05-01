@@ -60,17 +60,21 @@ class QlearningController:
             action = random.choice(actions)
         else: 
             # Exploitation - choose the action with the highest Q-value
-            bestAction = actions[0]
-            bestQValue = self.qTable.getQvalue(state, bestAction)
+            bestQValue = None
+            bestActions = []
+            
 
             for possibleAction  in actions:
                 qVal = self.qTable.getQvalue(state, possibleAction)
 
-                if qVal > bestQValue:
+                if bestQValue is None or qVal > bestQValue:
                     bestQValue = qVal
-                    bestAction = possibleAction
+                    bestActions = [possibleAction]
+                elif qVal > bestQValue:
+                    bestActions.append(possibleAction)
             
-            action = bestAction
+            # if there are multiple best actions, choose randomly among them
+            action = random.choice(bestActions)
 
         self.previousAction = action
         self.previousState = state
@@ -98,9 +102,42 @@ class QlearningController:
         pacman = game.pacman
         nearestGhostDirection = self.getNearestGhostDirection(pacman, pacman.game.ghosts)
         nearestGhostDistance = self.nearestGhostDistance(pacman, pacman.game.ghosts)
+        nearestpelletDirection = self.getNearestPelletDirection(pacman, game.pellets.pelletList)
+        state = State(pacman.position, nearestGhostDirection, nearestGhostDistance, nearestpelletDirection)
 
-        return State(pacman.position, nearestGhostDirection, nearestGhostDistance)
+        print(state)
 
+        return state
+    
+    def getNearestPelletDirection(self, pacman, pellets):
+        nearestPellet = None
+        nearestDistance = None
+
+        for pellet in pellets:
+            difference = pellet.position - pacman.position
+            distance = difference.magnitudeSquared()
+
+            if nearestDistance is None or distance < nearestDistance:
+                nearestPellet = pellet
+                nearestDistance = distance
+        
+        # None = no pellets
+        if nearestPellet is None:
+            return None
+        
+        difference = nearestPellet.position - pacman.position
+
+        if abs(difference.x) > abs(difference.y):
+            if difference.x > 0:
+                return RIGHT
+            else:
+                return LEFT
+        else:
+            if difference.y > 0:
+                return DOWN
+            else:
+                return UP
+            
     # simple heuristic to get the distance of the nearest ghost, used as part of the state
     def nearestGhostDistance(self, pacman, ghosts):
         nearestDistance = None
