@@ -37,7 +37,7 @@ class QlearningController:
         
         reward = self.calculateReward(game)
 
-        newState = self.getState(game.pacman)
+        newState = self.getState(game)
         newActions = self.getActions(game.pacman)
 
         self.updateQvalue(
@@ -72,10 +72,10 @@ class QlearningController:
             
             action = bestAction
 
-            self.previousAction = action
-            self.previousState = state
+        self.previousAction = action
+        self.previousState = state
 
-            return action
+        return action
 
 
     def updateQvalue(self, state, action, reward, newState, newActions):
@@ -94,8 +94,72 @@ class QlearningController:
         self.qTable.storeQvalue(state, action, newQValue)
         self.qTable.save()
 
-    def getState(self, pacman):
-        return State(pacman.position)
+    def getState(self, game):
+        pacman = game.pacman
+        nearestGhostDirection = self.getNearestGhostDirection(pacman, pacman.game.ghosts)
+        nearestGhostDistance = self.nearestGhostDistance(pacman, pacman.game.ghosts)
+
+        return State(pacman.position, nearestGhostDirection, nearestGhostDistance)
+
+    # simple heuristic to get the distance of the nearest ghost, used as part of the state
+    def nearestGhostDistance(self, pacman, ghosts):
+        nearestDistance = None
+
+        for ghost in ghosts:
+            if not ghost.visible:
+                continue
+
+            difference = ghost.position - pacman.position
+            distance = difference.magnitudeSquared()
+
+            if nearestDistance is None or distance < nearestDistance:
+                nearestDistance = distance
+
+        if nearestDistance is None:
+            return "none"
+
+        closeLimit = (TILEWIDTH * 5) ** 2
+        mediumLimit = (TILEWIDTH * 10) ** 2
+
+        if nearestDistance <= closeLimit:
+            return "close"
+        elif nearestDistance <= mediumLimit:
+            return "medium"
+        else:
+            return "far"
+
+    # simple heuristic to get the direction of the nearest ghost, used as part of the state
+    def getNearestGhostDirection(self, pacman, ghosts):
+        nearestGhost = None
+        nearestDistance = None
+
+        for ghost in ghosts:
+            if not ghost.visible:
+                continue    
+
+            difference = ghost.position - pacman.position
+            distance = difference.magnitudeSquared()
+
+            if nearestDistance is None or distance < nearestDistance:
+                nearestGhost = ghost
+                nearestDistance = distance
+        
+        # None = no ghosts
+        if nearestGhost is None:
+            return None
+        
+        difference = nearestGhost.position - pacman.position
+
+        if abs(difference.x) > abs(difference.y):
+            if difference.x > 0:
+                return RIGHT
+            else:
+                return LEFT
+        else:
+            if difference.y > 0:
+                return DOWN
+            else:
+                return UP
     
     def getActions(self, pacman):
         return pacman.validDirections()

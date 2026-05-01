@@ -14,9 +14,11 @@ class Pacman(Entity):
         self.setBetweenNodes(LEFT)
         self.alive = True
         self.sprites = PacmanSprites(self)
-
+        
+        # Qlearning
         self.useQlearning = False
         self.qlearningController = None
+        self.game = None
 
     def reset(self):
         Entity.reset(self)
@@ -66,7 +68,7 @@ class Pacman(Entity):
     def getDirection(self):
     
         if self.useQlearning and self.qlearningController is not None:
-            state = self.qlearningController.getState(self)
+            state = self.qlearningController.getState(self.game)
             actions = self.qlearningController.getActions(self)
             direction = self.qlearningController.getAction(state, actions)
 
