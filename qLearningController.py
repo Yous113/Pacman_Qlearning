@@ -112,8 +112,6 @@ class QlearningController:
 
         state = State(pacman.position, nearestGhostDirection, nearestGhostDistance, nearestpelletDirection, nearestGhostFreight)
 
-        print(state)
-
         return state
     
     def getNearestGhost(self, pacman, ghosts):
