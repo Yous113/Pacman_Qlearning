@@ -29,6 +29,9 @@ class QlearningController:
 
         self.learnCounter = 0
 
+        # Used to avoid saving the Q-table every frame
+        self.saveCounter = 0
+
     def setTrainingMode(self, training):
         if training:
             self.rho = 0.5
@@ -110,7 +113,10 @@ class QlearningController:
         newQValue = (1 - self.alpha) * oldQValue + self.alpha * (reward + self.gamma * maxFutureQValue)
 
         self.qTable.storeQvalue(state, action, newQValue)
-        self.qTable.save()
+        self.saveCounter += 1
+        # occasionally save the Q-table to a file avoid save every frame
+        if self.saveCounter % 300 == 0:
+            self.qTable.save()
 
     def getState(self, game):
         pacman = game.pacman

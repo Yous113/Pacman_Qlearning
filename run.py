@@ -150,6 +150,7 @@ class GameController(object):
     def checkEvents(self):
         for event in pygame.event.get():
             if event.type == QUIT:
+                self.QlearningController.qTable.save()
                 exit()
             elif event.type == KEYDOWN:
                 if event.key == K_SPACE:
