@@ -10,8 +10,11 @@ class State:
             nearestpelletDirection = None, 
             isNearestGhostFreight = False
             ) -> None:
-        
-        self.playerPosition = playerPosition.asTuple()
+        # tileposition keeps the qtable smaller and is enough to represent the state, we don't need the exact pixel position
+        self.playerPosition = (
+            int(playerPosition.x / TILEWIDTH), 
+            int(playerPosition.y / TILEHEIGHT)
+            )
 
         # Direction to the nearest ghost (Right, Left, Up, Down or None if no ghost is nearby)
         self.nearestGhostDirection = nearestGhostDirection

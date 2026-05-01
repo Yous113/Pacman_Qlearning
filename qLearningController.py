@@ -70,7 +70,7 @@ class QlearningController:
                 if bestQValue is None or qVal > bestQValue:
                     bestQValue = qVal
                     bestActions = [possibleAction]
-                elif qVal > bestQValue:
+                elif qVal == bestQValue:
                     bestActions.append(possibleAction)
             
             # if there are multiple best actions, choose randomly among them
