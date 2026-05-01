@@ -39,6 +39,12 @@ class GameController(object):
 
         self.QlearningController = QlearningController()
 
+        # faster learning
+        self.trainingMode = False
+        self.trainingFPS = 300
+        self.demoFPS = 60
+        self.speedMultiplier = 10
+
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
         self.background_norm.fill(BLACK)
@@ -62,7 +68,7 @@ class GameController(object):
         self.pacman.qlearningController = self.QlearningController
         self.pacman.useQlearning = True
         self.pacman.game = self
-        self.pacman.qlearningController.setTrainingMode(training=True)
+        self.pacman.qlearningController.setTrainingMode(self.trainingMode)
 
         self.pellets = PelletGroup(self.mazedata.obj.name+".txt")
         self.ghosts = GhostGroup(self.nodes.getStartTempNode(), self.pacman)
@@ -111,7 +117,11 @@ class GameController(object):
         
 
     def update(self):
-        dt = self.clock.tick(30) / 1000.0
+        if self.trainingMode:
+            dt = self.clock.tick(self.trainingFPS) / 1000.0
+            dt *= self.speedMultiplier
+        else:
+            dt = self.clock.tick(self.demoFPS) / 1000.0
         self.textgroup.update(dt)
         self.pellets.update(dt)
         if not self.pause.paused:

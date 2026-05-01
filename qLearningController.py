@@ -32,15 +32,22 @@ class QlearningController:
         # Used to avoid saving the Q-table every frame
         self.saveCounter = 0
 
+        self.learningEnabled = True
+
     def setTrainingMode(self, training):
         if training:
-            self.rho = 0.5
-        else:
             self.rho = 0.1
+            self.learningEnabled = True
+        else:
+            self.rho = 0
+            self.learningEnabled = False
 
 
     def learn(self, game):
         # To prevent error on the first update, we wait until we have a previous state and action to learn from
+        if not self.learningEnabled:
+            return
+        
         if self.previousState is None or self.previousAction is None:
             self.previousScore = game.score
             self.previousLives = game.lives
